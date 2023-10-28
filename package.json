@@ -1,0 +1,32 @@
+{
+  "name": "wow-quiz",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A Strapi application",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "@strapi/plugin-graphql": "4.14.5",
+    "@strapi/plugin-i18n": "4.14.5",
+    "@strapi/plugin-users-permissions": "4.14.5",
+    "@strapi/strapi": "4.14.5",
+    "better-sqlite3": "8.6.0",
+    "mime": "^3.0.0"
+  },
+  "author": {
+    "name": "A Strapi developer"
+  },
+  "strapi": {
+    "uuid": "2d4344a5-9eb5-4baf-88d7-42a0488971e8"
+  },
+  "engines": {
+    "node": ">=16.0.0 <=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}
