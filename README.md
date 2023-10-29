@@ -1,7 +1,4 @@
-WowQuizCMS
--
-
-# 🚀 Getting started with Strapi
+# 🚀 WowQuizCMS | Getting started with Strapi
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
 
@@ -38,6 +35,17 @@ yarn build
 ## ⚙️ Deployment
 
 Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
+
+```
+cd (project name)
+    
+npm install --production
+npm i pm2 -g
+
+NODE_ENV=production npm run build
+
+NODE_ENV=production pm2 start server.js --name wow.quiz.cms
+```
 
 ## 📚 Learn more
 
