@@ -44,7 +44,9 @@ npm i pm2 -g
 
 NODE_ENV=production npm run build
 
-NODE_ENV=production pm2 start server.js --name wow.quiz.cms
+[//]: # (NODE_ENV=production pm2 start server.js --name wow.quiz.cms)
+
+pm2 start ecosystem.config.js
 ```
 
 ## 📚 Learn more

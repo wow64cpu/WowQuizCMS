@@ -3,16 +3,21 @@
 const mime = require('mime');
 const fs = require('fs');
 const axios = require('axios').default;
+const url = require('url');
+const path = require('path');
+const UserAgent = require('user-agents');
 
 const locales = {
   default: {
     flagsQuiz: {
       label: 'Flags',
-      tag: 'flags-quiz'
+      tag: 'flags-quiz',
+      iconUrl: 'https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/flag/materialsymbolsrounded/flag_grad200fill1_48px.svg'
     },
     coatsOfArmsQuiz: {
       label: 'Coats of arms',
-      tag: 'coats_of_arms-quiz'
+      tag: 'coats_of_arms-quiz',
+      iconUrl: 'https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/security/materialsymbolsrounded/security_48px.svg'
     },
     locale: 'en'
   },
@@ -20,11 +25,11 @@ const locales = {
     {
       flagsQuiz: {
         label: 'Флаги',
-        tag: 'flags-quiz'
+        tag: 'flags-quiz',
       },
       coatsOfArmsQuiz: {
         label: 'Гербы',
-        tag: 'coats_of_arms-quiz'
+        tag: 'coats_of_arms-quiz',
       },
       locale: 'ru'
     }
@@ -54,7 +59,16 @@ module.exports = ({ strapi }) => ({
     let updateStatus = false;
 
     try {
-      const res = await axios.get('https://restcountries.com/v3.1/all');
+      const res = await axios.get('https://restcountries.com/v3.1/all', {
+        headers: {
+          'User-Agent': (new UserAgent()).toString(),
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+        }
+      });
 
       const filePath = `${strapi.dirs.app.root}/.tmp/countries.json`;
 
@@ -65,13 +79,31 @@ module.exports = ({ strapi }) => ({
       const flagsQuestions = createLocalizedArraysObject();
       const coatsOfArmsQuestions = createLocalizedArraysObject();
 
+      const flagsQuizzesIcon = await axios.get(locales.default.flagsQuiz.iconUrl);
+      const coatsOfArmsQuizzesIcon = await axios.get(locales.default.coatsOfArmsQuiz.iconUrl);
+
+      const flagsQuizzesIconFile = await createOrUpdateFile(strapi, getFileName(locales.default.flagsQuiz.iconUrl), flagsQuizzesIcon.data);
+      const coatsOfArmsQuizzesIconFile = await createOrUpdateFile(strapi, getFileName(locales.default.coatsOfArmsQuiz.iconUrl), coatsOfArmsQuizzesIcon.data);
+
       const localizedFlagsQuizzes = await Promise.all(
-        allLocales.map((locale) => creteOrUpdateEntry(strapi, quizUid, locale.flagsQuiz, locale.locale))
+        allLocales.map((locale) => creteOrUpdateEntry(strapi, quizUid, {
+          label: locale.flagsQuiz.label,
+          tag: locale.flagsQuiz.tag,
+          icon: {
+            id: flagsQuizzesIconFile.id
+          }
+        }, locale.locale))
       );
       await syncLocalizations(strapi, quizUid, localizedFlagsQuizzes);
 
       const localizedCoatsOfArmsQuizzes = await Promise.all(
-        allLocales.map((locale) => creteOrUpdateEntry(strapi, quizUid, locale.coatsOfArmsQuiz, locale.locale))
+        allLocales.map((locale) => creteOrUpdateEntry(strapi, quizUid, {
+          label: locale.coatsOfArmsQuiz.label,
+          tag: locale.coatsOfArmsQuiz.tag,
+          icon: {
+            id: coatsOfArmsQuizzesIconFile.id
+          }
+        }, locale.locale))
       );
       await syncLocalizations(strapi, quizUid, localizedCoatsOfArmsQuizzes);
 
@@ -163,6 +195,11 @@ module.exports = ({ strapi }) => ({
     return updateStatus;
   },
 });
+
+const getFileName = (link) => {
+  const parsed = url.parse(link);
+  return path.basename(parsed.pathname);
+}
 
 const createOrUpdateFile = async (strapi, fileName, data) => new Promise(async (resolve) => {
   const filePath = `${strapi.dirs.app.root}/.tmp/${fileName}`;
