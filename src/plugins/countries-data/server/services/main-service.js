@@ -118,6 +118,7 @@ module.exports = ({ strapi }) => ({
           };
 
           const flag = country.flag;
+          const flagSvgImageUrl = country.flags.svg;
           const coatOfArmsSvgImageUrl = country.coatOfArms.svg;
 
           return new Promise(async (resolve) => {
@@ -136,21 +137,32 @@ module.exports = ({ strapi }) => ({
 
             await syncLocalizations(strapi, answerUid, localizedAnswers);
 
-            const localizedFlagsQuestions = await Promise.all(
-              allLocales.map((locale) => creteOrUpdateEntry(strapi, questionUid, {
-                label: flag,
-                tag: `flags-quiz-question-${country.cca2}`,
-                answer: localizedAnswersObject[locale.locale]
-              }, locale.locale))
-            );
+            if (flagSvgImageUrl !== undefined) {
+              const res = await axios.get(flagSvgImageUrl);
 
-            const localizedFlagsQuestionsObject = localizedFlagsQuestions.reduce((acc, localizedQuestion) => {
-              flagsQuestions[localizedQuestion.locale].push(localizedQuestion);
-              acc[localizedQuestion.locale] = localizedQuestion;
-              return acc;
-            }, {});
+              const fileName = `flag_${country.cca2}.svg`;
 
-            await syncLocalizations(strapi, questionUid, localizedFlagsQuestions);
+              const flagFile = await createOrUpdateFile(strapi, fileName, res.data);
+
+              const localizedFlagsQuestions = await Promise.all(
+                allLocales.map((locale) => creteOrUpdateEntry(strapi, questionUid, {
+                  label: '',
+                  tag: `flags-quiz-question-${country.cca2}`,
+                  answer: localizedAnswersObject[locale.locale],
+                  image: {
+                    id: flagFile.id
+                  }
+                }, locale.locale))
+              );
+
+              const localizedFlagsQuestionsObject = localizedFlagsQuestions.reduce((acc, localizedQuestion) => {
+                flagsQuestions[localizedQuestion.locale].push(localizedQuestion);
+                acc[localizedQuestion.locale] = localizedQuestion;
+                return acc;
+              }, {});
+
+              await syncLocalizations(strapi, questionUid, localizedFlagsQuestions);
+            }
 
             if (coatOfArmsSvgImageUrl !== undefined) {
               const res = await axios.get(coatOfArmsSvgImageUrl);
@@ -161,6 +173,7 @@ module.exports = ({ strapi }) => ({
 
               const localizedCoatOfArmsQuestions = await Promise.all(
                 allLocales.map((locale) => creteOrUpdateEntry(strapi, questionUid, {
+                  label: '',
                   tag: `coat-of-arms-quiz-question-${country.cca2}`,
                   answer: localizedAnswersObject[locale.locale],
                   image: {
